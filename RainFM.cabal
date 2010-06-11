@@ -1,0 +1,10 @@
+name:     RainFM
+version:  0.1
+
+library
+  hs-source-dirs:  src
+
+executable RainFM
+  hs-source-dirs:  src
+  main-is:         Main.hs
+

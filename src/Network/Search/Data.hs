@@ -1,11 +1,11 @@
 
 module Network.Search.Data
-       ( SearchParameter
+       ( SearchParameter(..)
        ) where
 
-data SearchParameter = SortParameter field asc
-                     | GroupField field :: GroupField String
-                     | PagingFilter perPage pageNum :: PagingFilter Int Int
-                     | FacetFilter facet
-                     | FieldSearch field query
-                     | Keyword query
+data SearchParameter = SortParameter String Bool
+                     | GroupField String
+                     | PagingFilter Int Int
+                     | FacetFilter String String
+                     | FieldSearch String String
+                     | Keyword String

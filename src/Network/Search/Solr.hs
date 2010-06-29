@@ -16,12 +16,32 @@ import Network.HTTP
 import Network.HTTP
 import Data.UUID
 
+-- Constants
+requestSize = 100  -- Do operations in groups of 100
+
 data SolrInstance a =
      SolrInstance { solrHost :: String
                   , solrPort :: Int
---                  , toXML :: a -> String
---                  , fromXML :: String -> a
+                  , solrImport :: a -> SolrDoc
+                  , solrExport :: SolrDoc -> a
                   }
+  deriving (Eq, Show)
+
+data SolrData = SolrId UUID
+              | SolrInt Int
+              | SolrStr String
+              | SolrDate DateTime
+              | SolrArr [SolrElem]
+   deriving (Eq, Show)
+
+type SolrDoc = [(String, SolrData)]
+
+data SolrResult = SolrResult { resultName :: String
+                             , resultCount :: Int
+                             , resultScore :: Float
+                             , resultDocs :: [SolrDoc]
+                             }
+  deriving (Eq, Show)
 
 getUpdateURI :: SolrInstance a -> URI
 getUpdateURI solr = case parseURI ("http://" ++ (solrHost solr) ++ ":" ++ (show (solrPort solr)) ++ "/solr/update") of
@@ -35,12 +55,14 @@ getQueryURI solr = case parseURI ("http://" ++ (solrHost solr) ++ ":" ++ (show (
 --query :: SolrInstance a -> [QueryParameter] -> IO ([a])
 --query_ :: 
 
---add :: SolrInstance a -> UUID -> [a] -> IO (String)
+--add :: SolrInstance a -> [a] -> IO (String)
 -- pickle [a] -> xml -> add to <add> tag, post
 
 --update :: SolrInstance a -> UUID -> [a] -> IO (String)
 
 --delete :: SolrInstance a -> [QueryParameter] -> IO (String)
+
+--deleteByID :: solrInstance a -> UUID -> IO (String)
 
 commit :: SolrInstance a -> IO (String)
 commit solr = sendRequest solr "<commit/>"
@@ -67,9 +89,5 @@ solrRequest solr msg = Request { rqURI = getUpdateURI solr :: URI
                                              , Header HdrContentLength (show (length msg))
                                              ] :: [Header]
                                , rqBody = msg
-                               --, rqBody = encodeUtf8 (pack testPost)
-                               --, rqBody = Binary.encode (UTF8Bin.encode testPost)
                                }
-
---solrCommitTest = solrUpdateTest{ rqBody = Binary.encode (UTF8Bin.encode testPost2) }
 

@@ -1,5 +1,32 @@
-name:     RainFM
-version:  0.1
+name:           RainFM
+version:        0.1
+author:         Alex McCausland
+maintainer:     Alex McCausland <alex.mccausland@gmail.com>
+homepage:       http://github.com/amccausl/RainFM
+build-type:     Custom
+cabal-version:  >=1.8
+tested-with:    GHC==6.12.1
+synopsis:       Attempt at a haskell file manager with a powerful search backend.
+description:
+  Haskell interface to Solr search service for local and remote files.  If time and interest allows, it will support an OpenGL frontend.
+
+extra-source-files:
+  README.md
+category:       System
+
+source-repository head
+  type:     git
+  location: http://github.com/amccausl/RainFM.git
+  branch:   master
+
+flag tests
+  default:      True
+
+flag benchmarks
+  default:      True
+
+flag hpc
+  default:      True
 
 library
   hs-source-dirs:  src
@@ -8,3 +35,34 @@ executable RainFM
   hs-source-dirs:  src
   main-is:         Main.hs
 
+executable test-RainFM
+  main-is: Test.hs
+  if !flag(tests)
+    buildable: False
+  else
+    if flag(hpc)
+      ghc-options: -fhpc
+    ghc-options: -Wall
+    build-depends:
+      base >= 4
+      test-framework >= 0.2.4
+      test-framework-quickcheck >= 0.2.4
+      test-framework-hunit >= 0.2.4
+      QuickCheck >= 1.2.0.0
+      HUnit >= 1.2.2.1
+    other-modules:
+      Network.Search.Solr
+      RainFM
+
+executable benchmark-RainFM
+  main-is: Benchmark.hs
+  if !flag(benchmarks)
+    buildable: False
+  else
+    ghc-options: -Wall -threaded
+    build-depends:
+      base >= 4
+      criterion >= 0.5
+    other-modules:
+      Network.Search.Solr
+      RainFM

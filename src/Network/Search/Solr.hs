@@ -1,3 +1,4 @@
+{-# LANGUAGE Arrows, NoMonomorphismRestriction #-}
 module Network.Search.Solr
        ( SolrInstance(..)
        , sendRequest
@@ -9,39 +10,49 @@ module Network.Search.Solr
        , optimize
        ) where
 
+-- Import data types
+import Network.Search.Solr.Data
+import Data.UUID
+
+-- Import Networking modules
 import Network.URI (URI (..), parseURI, uriScheme, uriPath, uriQuery, uriFragment)
 import Network.TCP as TCP
 import Network.HTTP
---import Network.Search.Data
-import Network.HTTP
-import Data.UUID
+
+-- Import XML manipulation
+import Text.XML.HXT.Arrow
 
 -- Constants
 requestSize = 100  -- Do operations in groups of 100
 
-data SolrInstance a =
-     SolrInstance { solrHost :: String
-                  , solrPort :: Int
-                  , solrImport :: a -> SolrDoc
-                  , solrExport :: SolrDoc -> a
-                  }
-  deriving (Eq, Show)
+--query :: SolrInstance a -> [QueryParameter] -> IO ([a])
+--query_ :: 
 
-data SolrData = SolrId UUID
-              | SolrInt Int
-              | SolrStr String
-              | SolrDate DateTime
-              | SolrArr [SolrElem]
-   deriving (Eq, Show)
+--add :: SolrInstance a -> [a] -> IO (String)
+-- pickle [a] -> xml -> add to <add> tag, post
 
-type SolrDoc = [(String, SolrData)]
+--update :: SolrInstance a -> [a] -> IO (String)
 
-data SolrResult = SolrResult { resultName :: String
-                             , resultCount :: Int
-                             , resultScore :: Float
-                             , resultDocs :: [SolrDoc]
-                             }
-  deriving (Eq, Show)
+--delete :: SolrInstance a -> [QueryParameter] -> IO (String)
+
+--deleteByID :: SolrInstance a -> UUID -> IO (String)
+
+commit :: SolrInstance a -> IO (String)
+commit solr = sendRequest solr "<commit/>"
+
+optimize :: SolrInstance a -> IO (String)
+optimize solr = sendRequest solr "<optimize/>"
+
+-- XML functions
+
+-- Load "<result>" element
+
+-- Load "<doc>" element
+--getSolrDoc input = do
+--    result <- (runX (readString [(a_validate,v_0)] input) >>> deep (isElem >>> hasName "doc"))
+--    return result
+
+-- HTTP functions
 
 getUpdateURI :: SolrInstance a -> URI
 getUpdateURI solr = case parseURI ("http://" ++ (solrHost solr) ++ ":" ++ (show (solrPort solr)) ++ "/solr/update") of
@@ -50,25 +61,6 @@ getUpdateURI solr = case parseURI ("http://" ++ (solrHost solr) ++ ":" ++ (show 
 getQueryURI :: SolrInstance a -> URI
 getQueryURI solr = case parseURI ("http://" ++ (solrHost solr) ++ ":" ++ (show (solrPort solr)) ++ "/solr/select") of
                         Just u -> u
-
-
---query :: SolrInstance a -> [QueryParameter] -> IO ([a])
---query_ :: 
-
---add :: SolrInstance a -> [a] -> IO (String)
--- pickle [a] -> xml -> add to <add> tag, post
-
---update :: SolrInstance a -> UUID -> [a] -> IO (String)
-
---delete :: SolrInstance a -> [QueryParameter] -> IO (String)
-
---deleteByID :: solrInstance a -> UUID -> IO (String)
-
-commit :: SolrInstance a -> IO (String)
-commit solr = sendRequest solr "<commit/>"
-
-optimize :: SolrInstance a -> IO (String)
-optimize solr = sendRequest solr "<optimize/>"
 
 sendRequest :: SolrInstance a -> String -> IO (String)
 sendRequest solr msg = do

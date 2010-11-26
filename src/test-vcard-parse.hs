@@ -15,13 +15,16 @@ tagsoupLoadConfig = [ withParseHTML     yes
                     , withWarnings      no
                     ]
 
-play = runX (readDocument tagsoupLoadConfig "http://microformats.org/wiki/hcard" >>> getMicroformat)
+play = runX (readDocument tagsoupLoadConfig "http://microformats.org/wiki/hcard" >>> getVCard)
 
-trimWhiteSpace :: String -> String
-trimWhiteSpace = dropWhile isSpace . reverse . dropWhile isSpace . reverse
+getVCard :: (ArrowXml a) => a XmlTree (String, String)
+getVCard = deep (hasAttrValue "class" (elem "vcard" . words))
+    >>>     (constA "fn" &&& (deep (hasAttrValue "class" (elem "fn" . words)) >>> getTrimedText))
+        <+> (constA "email" &&& (deep (hasAttrValue "class" (elem "email" . words)) >>> getTrimedText))
+        <+> (constA "url" &&& (deep (hasAttrValue "class" (elem "url" . words)) >>> getHref))
 
-getMicroformat = deep (hasAttrValue "class" (elem "vcard" . words))
-    >>> putXmlTree "-"
-    >>> (constA "fn" &&& (deep (hasAttrValue "class" (elem "fn" . words)) >>> deep isText >>> getText >>> arr trimWhiteSpace))
-    <+> (constA "email" &&& (deep (hasAttrValue "class" (elem "email" . words)) >>> deep isText >>> getText >>> arr trimWhiteSpace))
-    <+> (constA "url" &&& (deep (hasAttrValue "class" (elem "url" . words)) >>> deep (hasAttrValue "href" (not . null)) >>> getAttrValue "href"))
+getTrimedText :: (ArrowXml a) => a XmlTree String
+getTrimedText = deep isText >>> getText >>> arr (dropWhile isSpace . reverse . dropWhile isSpace . reverse)
+
+getHref :: (ArrowXml a) => a XmlTree String
+getHref = deep (hasAttrValue "href" (not . Prelude.null)) >>> getAttrValue "href"

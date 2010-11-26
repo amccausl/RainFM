@@ -1,5 +1,5 @@
 
-module Data.Microformats
+module Text.XML.HXT.Arrow.Microformats
        ( Microformat(..)
        , getMicroformat
        ) where
@@ -8,13 +8,13 @@ import Text.XML.HXT.Core
 
 -- Import shared data types
 import Data.Time
-import Data.Listing
-import Data.Resume
-import Text.ICalendar.Parser
-import Text.VCard
+--import Data.Listing
+--import Data.Resume
+--import Data.ICalendar
+--import Data.VCard
 
-class Microformat t where
-    getMicroformat :: (ArrowXml a) => a XmlTree t
+--class Microformat t where
+--    getMicroformat :: (ArrowXml a) => a XmlTree t
 
 --instance Microformat Resume where
 --    getMicroformat :: (ArrowXml a) => a XmlTree Resume

@@ -11,17 +11,19 @@ import Locale
 
 tagsoupLoadConfig = [ withParseHTML     yes
                     , withTagSoup
-                    , withCurl          [("user-agent", "Mozilla/5.0 (en-US) Firefox/2.0.0.6667")]
                     , withWarnings      no
                     ]
 
 play = runX (readDocument tagsoupLoadConfig "http://microformats.org/wiki/hcard" >>> getVCard)
 
 getVCard :: (ArrowXml a) => a XmlTree (String, String)
-getVCard = deep (hasAttrValue "class" (elem "vcard" . words))
-    >>>     (constA "fn" &&& (deep (hasAttrValue "class" (elem "fn" . words)) >>> getTrimedText))
-        <+> (constA "email" &&& (deep (hasAttrValue "class" (elem "email" . words)) >>> getTrimedText))
-        <+> (constA "url" &&& (deep (hasAttrValue "class" (elem "url" . words)) >>> getHref))
+getVCard = getClassType "vcard"
+    >>>     (constA "fn" &&& (getClassType "fn" >>> getTrimedText))
+        <+> (constA "email" &&& (getClassType "email" >>> getTrimedText))
+        <+> (constA "url" &&& (getClassType "url" >>> getHref))
+
+getClassType :: (ArrowXml a) => String -> a XmlTree XmlTree
+getClassType tag = deep (hasAttrValue "class" (elem tag . words))
 
 getTrimedText :: (ArrowXml a) => a XmlTree String
 getTrimedText = deep isText >>> getText >>> arr (dropWhile isSpace . reverse . dropWhile isSpace . reverse)

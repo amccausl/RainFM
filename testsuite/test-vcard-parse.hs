@@ -5,8 +5,9 @@ import Text.XML.HXT.Curl
 import Text.XML.HXT.TagSoup
 
 import Control.Arrow.ArrowList
-import Data.Time
 import Data.Char
+import Data.Time
+import Data.RDF
 import Locale
 
 tagsoupLoadConfig = [ withParseHTML     yes
